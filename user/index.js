@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcrypt");
 const db = require("../database/db");
 
 const router = express.Router();
@@ -33,13 +34,14 @@ router.get("/", async (req, res) => {
   });
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { username, password, role } = req.body;
   if (username && password && role) {
-    // storing password as plain text not recommended
+    // Hash password before storing into db
+    const hashedPassword = await bcrypt.hash(password, 10);
     db.run(
       "insert into user(username,password,role) values(?,?,?)",
-      [username, password, role],
+      [username, hashedPassword, role],
       (error) => {
         if (error) {
           res.json({ message: "Internal Server error" });
