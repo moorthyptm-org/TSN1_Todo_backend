@@ -8,8 +8,10 @@ db.run(
 );
 db.run(
   `CREATE TABLE IF NOT EXISTS todos(id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    title VARCHAR(50), comment VARCHAR(100), addedOn real, status BOOLEAN NOT NULL default 0, userId INTEGER NOT NULL,FOREIGN KEY (userId)
-  REFERENCES user (id) )`
+    title VARCHAR(50), comment VARCHAR(100), addedOn real, status BOOLEAN NOT NULL default 0, userId INTEGER NOT NULL,FOREIGN KEY(userId) REFERENCES user(id) )`
 );
+
+// Todo
+// PRAGMA foreign_keys = ON;
 
 module.exports = db;
