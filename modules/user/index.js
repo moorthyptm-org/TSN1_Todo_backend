@@ -1,18 +1,18 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const db = require("../database/db");
+const db = require("../../database/db");
 
 const {
   invalidRequest,
   serverError,
   userAlreadyExists,
   usernameAlreadytaken,
-} = require("../messages/error");
+} = require("../../messages/error");
 const {
   userCreatedSuccessfully,
   userUpdatedSuccessfully,
   userDeletedSuccessfully,
-} = require("../messages/success");
+} = require("../../messages/success");
 
 const userRouter = express.Router();
 

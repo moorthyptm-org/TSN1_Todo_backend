@@ -2,10 +2,9 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const secret = process.env.secret || "topSecret"; // Not for production
-
-const db = require("../database/db");
-const { serverError, invalidUsernamePassword } = require("../messages/error");
+const db = require("../../database/db");
+const { serverError, invalidUsernamePassword } = require("../../messages/error");
+const { secret } = require("../../config");
 
 const authRouter = express.Router();
 
@@ -26,7 +25,7 @@ authRouter.post("/", (req, res) => {
             username: row.username, // Just for display purpose | use firstname last name instead
             role: row.role, //else if you want query database everytime and check the role
           };
-          const token = jwt.sign(payload, secret, { expiresIn: "10m" });
+          const token = jwt.sign(payload, secret, { expiresIn: "1h" });
 
           res.setHeader("Authorization", `Bearer ${token}`);
           res.json({
