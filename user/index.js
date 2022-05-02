@@ -6,6 +6,7 @@ const {
   invalidRequest,
   serverError,
   userAlreadyExists,
+  usernameAlreadytaken,
 } = require("../messages/error");
 const {
   userCreatedSuccessfully,
@@ -68,6 +69,7 @@ userRouter.get("/:userId", async (req, res) => {
       data: user,
     });
   } else {
+    res.status(400);
     invalidRequest(res);
   }
 });
@@ -90,15 +92,20 @@ userRouter.post("/", async (req, res) => {
           [username, hashedPassword, role],
           (error) => {
             if (error) {
-              console.log(error);
+              res.status(500);
               serverError(res);
             } else {
+              res.status(201);
               userCreatedSuccessfully(res);
             }
           }
         );
-      else userAlreadyExists(res);
+      else {
+        res.status(409);
+        userAlreadyExists(res);
+      }
     } else {
+      res.status(400);
       invalidRequest(res);
     }
   } catch (error) {
@@ -111,6 +118,16 @@ userRouter.put("/:userId", async (req, res) => {
     const { username, password, role } = req.body;
     const checkUserExists =
       (await getUser(null, req.params.userId)).id !== null;
+
+    const checkUserNameExists =
+      (await getUser(username)).id !== +req.params.userId;
+
+    if (checkUserNameExists) {
+      res.status(409);
+      usernameAlreadytaken(res);
+      return;
+    }
+
     if (checkUserExists) {
       // Hash password before storing into db
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -120,6 +137,7 @@ userRouter.put("/:userId", async (req, res) => {
         [username, hashedPassword, role],
         (error) => {
           if (error) {
+            res.status(500);
             serverError(res);
           } else {
             userUpdatedSuccessfully(res);
@@ -127,9 +145,11 @@ userRouter.put("/:userId", async (req, res) => {
         }
       );
     } else {
+      res.status(400);
       invalidRequest(res);
     }
   } catch {
+    res.status(500);
     serverError(res);
   }
 });
@@ -140,15 +160,18 @@ userRouter.delete("/:userId", async (req, res) => {
     if (checkUserExists) {
       db.run("delete from user where id = ? ", req.params.userId, (error) => {
         if (error) {
+          res.status(500);
           serverError(res);
         } else {
           userDeletedSuccessfully(res);
         }
       });
     } else {
+      res.status(400);
       invalidRequest(res);
     }
   } catch {
+    res.status(500);
     serverError(res);
   }
 });

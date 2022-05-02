@@ -22,7 +22,8 @@ authRouter.post("/", (req, res) => {
         }
         if (row.username && (await bcrypt.compare(password, row.password))) {
           const payload = {
-            userId: row.id,
+            userId: row.id, // use UUID for better security
+            username: row.username, // Just for display purpose | use firstname last name instead
             role: row.role, //else if you want query database everytime and check the role
           };
           const token = jwt.sign(payload, secret, { expiresIn: "10m" });
@@ -32,6 +33,7 @@ authRouter.post("/", (req, res) => {
             message: "Login success",
           });
         } else {
+          res.status(401);
           invalidUsernamePassword(res);
         }
       }
