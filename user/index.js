@@ -26,6 +26,23 @@ const getUsers = () =>
     );
   });
 
+const getUser = (username) =>
+  new Promise((resolve, reject) => {
+    db.get(
+      "select id from user where username=? UNION ALL select NULL LIMIT 1",
+      username,
+      (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      }
+    );
+  });
+
+const serverError = (res) => res.json({ message: "Internal server error" });
+
 router.get("/", async (req, res) => {
   const users = await getUsers();
   res.json({
@@ -35,25 +52,40 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { username, password, role } = req.body;
-  if (username && password && role) {
-    // Hash password before storing into db
-    const hashedPassword = await bcrypt.hash(password, 10);
-    db.run(
-      "insert into user(username,password,role) values(?,?,?)",
-      [username, hashedPassword, role],
-      (error) => {
-        if (error) {
-          res.json({ message: "Internal Server error" });
-        } else {
-          res.json({ message: "User created successfully " });
-        }
-      }
-    );
-  } else {
-    res.json({
-      message: "Invalid request ",
-    });
+  try {
+    const { username, password, role } = req.body;
+    if (username && password && role) {
+      // Add more validation if you want
+      // * password min and max // password strength
+
+      // Hash password before storing into db
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // check user already exists or not
+      const checkUser = (await getUser(username)).id === null;
+      if (checkUser)
+        db.run(
+          "insert into user(username,password,role) values(?,?,?)",
+          [username, hashedPassword, role],
+          (error) => {
+            if (error) {
+              serverError(res);
+            } else {
+              res.json({ message: "User created successfully" });
+            }
+          }
+        );
+      else
+        res.json({
+          message: "user already exists",
+        });
+    } else {
+      res.json({
+        message: "Invalid request",
+      });
+    }
+  } catch {
+    serverError(res);
   }
 });
 
