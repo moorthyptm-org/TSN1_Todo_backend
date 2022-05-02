@@ -16,7 +16,7 @@ const authendication = (req, res, next) => {
       });
     }
   } catch (e) {
-    if (e.message === "jwt must be provided") {
+    if (e.message === "jwt must be provided" || e.message === "jwt expired") {
       res.json({
         message: "Please login to access",
       });
