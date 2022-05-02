@@ -1,4 +1,15 @@
-const serverError = (res) => res.json({ message: "Internal server error" });
-const invalidRequest = (res) => res.json({ message: "Invalid request" });
+const serverError = (res) => message(res, "Internal server error");
+const invalidRequest = (res) => message(res, "Invalid request");
+const userAlreadyExists = (res) => message(res, "user already exists");
 
-module.exports = { serverError, invalidRequest };
+const invalidUsernamePassword = (res) =>
+  message(res, "username or password is incorrect");
+
+const message = (res, message) => res.json({ message });
+
+module.exports = {
+  serverError,
+  invalidRequest,
+  invalidUsernamePassword,
+  userAlreadyExists,
+};

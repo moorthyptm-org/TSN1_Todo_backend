@@ -2,9 +2,18 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const db = require("../database/db");
 
-const { invalidRequest, serverError } = require("../messages/error");
+const {
+  invalidRequest,
+  serverError,
+  userAlreadyExists,
+} = require("../messages/error");
+const {
+  userCreatedSuccessfully,
+  userUpdatedSuccessfully,
+  userDeletedSuccessfully,
+} = require("../messages/success");
 
-const router = express.Router();
+const userRouter = express.Router();
 
 /**
  * getUsers
@@ -44,14 +53,14 @@ const getUser = (username, id = null) => {
   });
 };
 
-router.get("/", async (req, res) => {
+userRouter.get("/", async (req, res) => {
   const users = await getUsers();
   res.json({
     message: "success",
     data: users,
   });
 });
-router.get("/:userId", async (req, res) => {
+userRouter.get("/:userId", async (req, res) => {
   const user = await getUser(null, req.params.userId);
   if (user.id) {
     res.json({
@@ -63,7 +72,7 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+userRouter.post("/", async (req, res) => {
   try {
     const { username, password, role } = req.body;
     if (username && password && role) {
@@ -81,25 +90,23 @@ router.post("/", async (req, res) => {
           [username, hashedPassword, role],
           (error) => {
             if (error) {
+              console.log(error);
               serverError(res);
             } else {
-              res.json({ message: "User created successfully" });
+              userCreatedSuccessfully(res);
             }
           }
         );
-      else
-        res.json({
-          message: "user already exists",
-        });
+      else userAlreadyExists(res);
     } else {
       invalidRequest(res);
     }
-  } catch {
+  } catch (error) {
     serverError(res);
   }
 });
 
-router.put("/:userId", async (req, res) => {
+userRouter.put("/:userId", async (req, res) => {
   try {
     const { username, password, role } = req.body;
     const checkUserExists =
@@ -115,7 +122,7 @@ router.put("/:userId", async (req, res) => {
           if (error) {
             serverError(res);
           } else {
-            res.json({ message: "User updated successfully" });
+            userUpdatedSuccessfully(res);
           }
         }
       );
@@ -126,7 +133,7 @@ router.put("/:userId", async (req, res) => {
     serverError(res);
   }
 });
-router.delete("/:userId", async (req, res) => {
+userRouter.delete("/:userId", async (req, res) => {
   try {
     const checkUserExists =
       (await getUser(null, req.params.userId)).id !== null;
@@ -135,7 +142,7 @@ router.delete("/:userId", async (req, res) => {
         if (error) {
           serverError(res);
         } else {
-          res.json({ message: "User deleted successfully" });
+          userDeletedSuccessfully(res);
         }
       });
     } else {
@@ -146,4 +153,4 @@ router.delete("/:userId", async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = userRouter;
